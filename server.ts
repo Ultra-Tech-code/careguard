@@ -808,9 +808,9 @@ app.post("/pharmacy/order", async (req, res) => {
     return;
   }
 
-  const order = parsedOrder.data as MedicationOrderInput;
-  const safeDrug = sanitizeUserString(order.drug);
-  const safePharmacy = sanitizeUserString(order.pharmacy);
+  const parsedOrderData = parsedOrder.data as MedicationOrderInput;
+  const safeDrug = sanitizeUserString(parsedOrderData.drug);
+  const safePharmacy = sanitizeUserString(parsedOrderData.pharmacy);
   const headers = new Headers();
   for (const [key, value] of Object.entries(req.headers)) {
     if (value == null) continue;
@@ -825,7 +825,7 @@ app.post("/pharmacy/order", async (req, res) => {
     headers,
   });
   const result = await mppx.charge({
-    amount: order.amount.toFixed(2),
+    amount: parsedOrderData.amount.toFixed(2),
     description: `Medication: ${safeDrug} from ${safePharmacy}`,
   })(webReq);
   if (result.status === 402) {
@@ -839,7 +839,7 @@ app.post("/pharmacy/order", async (req, res) => {
     id: `order-${Date.now()}`,
     drug: safeDrug,
     pharmacy: safePharmacy,
-    amount: order.amount,
+    amount: parsedOrderData.amount,
     status: "confirmed",
     timestamp: new Date().toISOString(),
     network: NETWORK,
